@@ -11,13 +11,17 @@ class BigQueryClientFactory
 {
     public static function createForConfig(array $bigQueryConfig): BigQueryClient
     {
-        $clientConfig = array_merge([
-            'projectId' => $bigQueryConfig['project_id'],
-            'keyFilePath' => $bigQueryConfig['application_credentials'],
-            'keyFile' => Arr::get($bigQueryConfig, 'keyFile', null),
-            'authCache' => self::configureCache($bigQueryConfig['auth_cache_store']),
-            'location' => Arr::get($bigQueryConfig, 'location', null),
-        ], Arr::get($bigQueryConfig, 'client_options', []));
+        $clientConfig = array_merge(
+            array_filter([
+                'projectId' => $bigQueryConfig['project_id'],
+                'keyFilePath' => $bigQueryConfig['application_credentials'] ?: null,
+                'keyFile' => Arr::get($bigQueryConfig, 'keyFile', null),
+                'authCache' => self::configureCache($bigQueryConfig['auth_cache_store']),
+                'location' => Arr::get($bigQueryConfig, 'location', null) ?: null,
+                'universeDomain' => Arr::get($bigQueryConfig, 'universe_domain', 'googleapis.com'),
+            ], fn ($v) => $v !== null),
+            Arr::get($bigQueryConfig, 'client_options', [])
+        );
 
         return new BigQueryClient($clientConfig);
     }
